@@ -1,0 +1,83 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcommerce-produits
+  namespace: mcommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcommerce-produits
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: mcommerce-produits
+        version: v1
+    spec:
+      containers:
+        - name: mcommerce-produits
+          image: registry.gitlab.com/abdelhadicpu/ms-commerce/product-ms:1.0 
+          ports:
+            - containerPort: 5000
+          resources: {}
+          env:
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: mcommerce-secret
+                  key: mcommerce-database
+            - name: MONGO_SERVICE
+              value: mcommerce-mongodb-service
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcommerce-produits-v2
+  namespace: mcommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcommerce-produits
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: mcommerce-produits
+        version: v2
+    spec:
+      containers:
+        - name: mcommerce-produits
+          image: registry.gitlab.com/abdelhadicpu/ms-commerce/product-ms:1.0  
+          ports:
+            - containerPort: 5000
+          resources: {}
+          env:
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: mcommerce-secret
+                  key: mcommerce-database
+            - name: MONGO_SERVICE
+              value: mcommerce-mongodb-service
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcommerce-produits-service
+  namespace: mcommerce
+spec:
+  selector:
+    app: mcommerce-produits
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

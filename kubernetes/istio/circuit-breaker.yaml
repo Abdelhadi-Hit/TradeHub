@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: mcommerce-paiement-dr
+  namespace: mcommerce
+spec:
+  host: mcommerce-paiement-service.mcommerce.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
+    outlierDetection:
+      consecutiveErrors: 1
+      interval: 1s
+      baseEjectionTime: 3m
+      maxEjectionPercent: 100
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: mcommerce-paiement-vs
+  namespace: mcommerce
+spec:
+  hosts:
+    - mcommerce-paiement-service
+  http:
+    - route:
+      - destination:
+          host: mcommerce-paiement-service.mcommerce.svc.cluster.local
+          port:
+            number: 5002

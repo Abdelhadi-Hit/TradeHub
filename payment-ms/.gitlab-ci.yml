@@ -1,0 +1,60 @@
+image: node:latest
+
+stages:
+  - test
+  - build
+  - unit_test
+  - scan
+  - publish
+
+include:
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
+variables:
+  CACHE_PATH: node_modules/
+  IMAGE_NAME: payment-ms
+  IMAGE_TAG: "1.0"
+  CONTAINER_REGISTRY: registry.gitlab.com
+
+build:
+  stage: build
+  before_script:
+    - cd payment-ms
+  script:
+    - npm install
+  artifacts:
+    paths:
+      - node_modules
+  cache:
+    key: ${CACHE_PATH}-${CI_COMMIT_REF_SLUG}
+    paths:
+      - ${CACHE_PATH}
+
+test:
+  stage: unit_test
+  before_script:
+    - cd payment-ms
+    - npm install
+  script:
+    - npm test
+
+scan:
+  stage: scan
+  before_script:
+    - cd payment-ms
+  script:
+    - npm install
+    - npm audit
+
+publish:
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  stage: publish
+  before_script:
+    - docker info
+    - cd payment-ms
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:$IMAGE_TAG .
+    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CONTAINER_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:$IMAGE_TAG

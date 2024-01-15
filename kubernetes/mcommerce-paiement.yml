@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcommerce-paiement
+  namespace: mcommerce
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: mcommerce-paiement
+  template:
+    metadata:
+      labels:
+        app: mcommerce-paiement
+    spec:
+      containers:
+        - name: mcommerce-paiement
+          image: registry.gitlab.com/abdelhadicpu/ms-commerce/payment-ms:1.0
+          ports:
+            - containerPort: 5002
+          resources: {}
+          env:
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: mcommerce-secret
+                  key: mcommerce-database
+            - name: MONGO_SERVICE
+              value: mcommerce-mongodb-service
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcommerce-paiement-service
+  namespace: mcommerce
+spec:
+  selector:
+    app: mcommerce-paiement
+  ports:
+    - protocol: TCP
+      port: 5002
+      targetPort: 5002

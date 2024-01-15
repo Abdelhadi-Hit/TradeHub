@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcommerce-commandes
+  namespace: mcommerce
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: mcommerce-commandes
+  template:
+    metadata:
+      labels:
+        app: mcommerce-commandes
+    spec:
+      containers:
+        - name: mcommerce-commandes
+          image: registry.gitlab.com/abdelhadicpu/ms-commerce/command-ms:1.0
+          ports:
+            - containerPort: 5001
+          resources: {}
+          env:
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: mcommerce-secret
+                  key: mcommerce-database
+            - name: MONGO_SERVICE
+              value: mcommerce-mongodb-service
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcommerce-commandes-service
+  namespace: mcommerce
+spec:
+  selector:
+    app: mcommerce-commandes
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001

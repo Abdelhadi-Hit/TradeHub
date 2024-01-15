@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: mcommerce-produits
+  namespace: mcommerce
+spec:
+  hosts:
+  - mcommerce-produits-service
+  http:
+  - route:
+    - destination:
+        host: mcommerce-produits-service
+        subset: v1
+      weight: 90
+    - destination:
+        host: mcommerce-produits-service
+        subset: v2
+      weight: 10
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: mcommerce-produits
+  namespace: mcommerce
+spec:
+  host: mcommerce-produits-service
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2

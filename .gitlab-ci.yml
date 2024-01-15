@@ -1,0 +1,55 @@
+default:
+  tags:
+    - docker
+
+stages:
+  
+  - test
+  - triggers
+
+product_ms:
+  stage: triggers
+  trigger:
+    include: product-ms/.gitlab-ci.yml
+  rules:
+    - changes:
+      - product-ms/**/*
+
+payment_ms:
+  stage: triggers
+  trigger:
+    include: payment-ms/.gitlab-ci.yml
+  rules:
+    - changes:
+      - payment-ms/**/*
+
+command_ms:
+  stage: triggers
+  trigger:
+    include: command-ms/.gitlab-ci.yml
+  rules:
+    - changes:
+      - command-ms/**/*
+
+
+
+Authentication_ms:
+  stage: triggers
+  trigger:
+    include: Authentication-ms/.gitlab-ci.yml
+  rules:
+    - changes:
+      - Authentication-ms/**/*
+
+clientui:
+  stage: triggers
+  trigger:
+    include: clientui/.gitlab-ci.yml
+  rules:
+    - changes:
+      - clientui/**/*
+
+sast:
+  stage: test
+include:
+- template: Security/SAST.gitlab-ci.yml

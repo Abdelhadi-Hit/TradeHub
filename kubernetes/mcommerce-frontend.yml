@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcommerce-front
+  namespace: mcommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcommerce-front
+  template:
+    metadata:
+      labels:
+        app: mcommerce-front
+    spec:
+      containers:
+        - name: mcommerce-front
+          image: registry.gitlab.com/abdelhadicpu/ms-commerce/clientui:1.0
+          ports:
+            - containerPort: 3000
+          resources: {}
+          env: 
+            - name: SERVICE_PRODUITS
+              value: apigateway-service:5000
+            - name: SERVICE_COMMANDES
+              value: apigateway-service:5001
+            - name: SERVICE_PAIEMENT
+              value: apigateway-service:5002
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcommerce-front-service
+  namespace: mcommerce
+spec:
+  selector:
+    app: mcommerce-front
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

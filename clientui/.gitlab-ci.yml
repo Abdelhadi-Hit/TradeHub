@@ -1,0 +1,51 @@
+image: node:latest
+
+stages:
+  - test
+  - build
+  - scan
+  - publish
+
+include:
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
+variables:
+  CACHE_PATH: node_modules/
+  IMAGE_NAME: clientui
+  IMAGE_TAG: "1.0"
+  CONTAINER_REGISTRY: registry.gitlab.com
+
+build:
+  stage: build
+  before_script:
+    - cd clientui
+  script:
+    - npm install
+    - npm run build
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - $CACHE_PATH
+      
+  
+
+scan:
+  stage: scan
+  before_script:
+    - cd clientui
+  script:
+    - npm install || true
+    - npm audit || true
+
+publish:
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  stage: publish
+  before_script:
+    - docker info
+    - cd clientui
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:$IMAGE_TAG .
+    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CONTAINER_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:$IMAGE_TAG
